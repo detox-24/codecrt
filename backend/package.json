@@ -1,0 +1,16 @@
+{
+  "name": "codecrt-backend",
+  "version": "1.0.0",
+  "description": "Backend for CodeCRT - Multiuser code editor",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}
