@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import * as monaco from 'monaco-editor';
-import * as io from 'socket.io-client';
+import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
+import { MonacoBinding } from 'y-monaco';
+import { io } from 'socket.io-client';
 
-// Fix Monaco worker issue manually
 (self as any).MonacoEnvironment = {
   getWorkerUrl: function (moduleId: string, label: string) {
     if (label === 'json') return 'node_modules/monaco-editor/esm/vs/language/json/json.worker.js';
@@ -19,20 +21,24 @@ import * as io from 'socket.io-client';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit {
-  socket: any;
   editor: any;
   sessionId = 'session123';
-  lastCode = '// CodeCRT - Start coding here\n';
-  timeout: any;
+  output = '';
+  socket: any;
+  selectedLanguage = 'javascript';
 
   ngOnInit() {
-    this.socket = io.default('http://localhost:3000', { query: { sessionId: this.sessionId } });
-    this.socket.on('connect', () => console.log('Connected to server'));
+    const ydoc = new Y.Doc();
+    const wsProvider = new WebsocketProvider(
+      'ws://localhost:3000/yjs', // Yjs CRDT sync path
+      this.sessionId,
+      ydoc
+    );
+    const ytext = ydoc.getText('code');
 
-    // Initialize editor
     this.editor = monaco.editor.create(document.getElementById('editor')!, {
-      value: this.lastCode,
-      language: 'javascript',
+      value: '// CodeCRT - Start coding here\nconsole.log("Hello, World!");',
+      language: this.selectedLanguage,
       theme: 'retro-clean',
       fontFamily: 'IBM Plex Mono, monospace',
       fontSize: 14,
@@ -45,26 +51,35 @@ export class AppComponent implements OnInit {
       colors: { 'editor.background': '#1E1E1E' },
     });
 
-    this.editor.onDidChangeModelContent(() => {
-      const code = this.editor.getValue();
-      clearTimeout(this.timeout);
-      this.timeout = setTimeout(() => {
-        if (code !== this.lastCode) {
-          console.log('Sending code:', code);
-          this.socket.emit('codeChange', { code, sessionId: this.sessionId });
-          this.lastCode = code;
-        }
-      }, 300); // Debounce 300ms
+    const binding = new MonacoBinding(ytext, this.editor.getModel(), new Set([this.editor]));
+
+    wsProvider.on('status', (event: any) => {
+      console.log('Yjs WebSocket status:', event.status);
     });
 
-    this.socket.on('codeUpdate', (data: { code: string; sender: string }) => {
-      console.log('Received codeUpdate:', data);
-      if (data.sender !== this.socket.id && data.code !== this.lastCode) {
-        const position = this.editor.getPosition(); // Save cursor
-        this.editor.setValue(data.code); // Simple setValue for now
-        this.editor.setPosition(position); // Restore cursor
-        this.lastCode = data.code;
-      }
+    this.socket = io('http://localhost:3000'); // Default path for run results
+    this.socket.on('connect', () => console.log('Socket.io connected'));
+    this.socket.on('runResult', (data: { output: string }) => {
+      this.output = data.output;
+      console.log('Run result:', data.output);
     });
+  }
+
+  runCode() {
+    const code = this.editor.getValue();
+    fetch('http://localhost:3000/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, language: this.selectedLanguage }),
+    })
+      .then(res => res.json())
+      .then(data => this.output = data.output || data.error)
+      .catch(err => this.output = 'Error: ' + err.message);
+  }
+
+  changeLanguage(event: Event) {
+    const target = event.target as HTMLSelectElement;
+    this.selectedLanguage = target.value;
+    monaco.editor.setModelLanguage(this.editor.getModel(), this.selectedLanguage);
   }
 }

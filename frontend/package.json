@@ -24,6 +24,9 @@
     "rxjs": "~7.8.0",
     "socket.io-client": "^4.8.1",
     "tslib": "^2.3.0",
+    "y-monaco": "^0.1.6",
+    "y-websocket": "^2.1.0",
+    "yjs": "^13.6.24",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {

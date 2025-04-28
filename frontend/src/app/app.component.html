@@ -1,4 +1,13 @@
 <div class="toolbar">
-  <button>Run</button>
+  <select (change)="changeLanguage($event)">
+    <option value="javascript">JavaScript</option>
+    <option value="python">Python</option>
+    <option value="cpp">C++</option>
+    <option value="java">Java</option>
+  </select>
+  <button (click)="runCode()">Run</button>
 </div>
 <div id="editor" style="height: 500px;"></div>
+<div class="output" style="padding: 10px; background: #1E1E1E; color: #66FF99; font-family: 'IBM Plex Mono', monospace;">
+  {{ output }}
+</div>
