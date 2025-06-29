@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Matrix Theme Base Styles */
+body {
+  @apply bg-black text-matrix-green font-mono m-0 p-0 h-screen w-screen overflow-hidden;
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
+}
+
+.matrix-container {
+  @apply fixed top-0 left-0 h-full w-full opacity-30 z-0 pointer-events-none;
+}
+
+/* CRT Effect */
+.crt-screen {
+  @apply relative bg-black text-matrix-green p-4 rounded-md border border-matrix-darkgreen font-crt tracking-wide shadow-inner;
+}
+
+.crt-screen::before {
+  content: '';
+  @apply absolute top-0 left-0 right-0 bottom-0 pointer-events-none;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 2px;
+  z-index: 10;
+}
+
+.crt-screen::after {
+  content: '';
+  @apply absolute top-0 left-0 right-0 bottom-0 pointer-events-none;
+  background: rgba(18, 16, 16, 0.1);
+  opacity: 0;
+  z-index: 20;
+  animation: flicker 0.15s infinite;
+}
+
+.monaco-editor {
+  @apply w-full h-full;
+}
+
+.monaco-editor .decorationsOverviewRuler {
+  @apply hidden;
+}
+
+/* Controls and inputs */
+button {
+  @apply bg-matrix-darkgreen hover:bg-matrix-green hover:text-black text-matrix-green border border-matrix-green 
+         px-4 py-2 rounded-sm transition-colors duration-200 shadow-sm shadow-matrix-green;
+}
+
+input {
+  @apply bg-black border border-matrix-green text-matrix-green px-3 py-2 rounded-sm focus:outline-none focus:ring focus:ring-matrix
+         ring-matrix-green shadow-inner;
+}
+
+/* User cursor and selection styles */
+.remote-cursor {
+  @apply absolute pointer-events-none;
+  z-index: 10;
+}
+
+.remote-selection {
+  @apply opacity-30;
+}
+
+.remote-caret {
+  @apply w-[2px] absolute animate-flicker;
+  height: 17px;
+}
+
+.user-presence {
+  @apply flex items-center gap-2 px-2 py-1 rounded-sm;
+}
+
+.user-avatar {
+  @apply w-3 h-3 rounded-full;
+}
